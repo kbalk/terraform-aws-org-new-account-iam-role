@@ -7,6 +7,8 @@ import os
 import sys
 import time
 
+from importlib import metadata
+
 from aws_lambda_powertools import Logger
 import boto3
 import botocore
@@ -312,6 +314,12 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
     # If there is no default boto cache dir use "/tmp/" as it is writable.
     botocore_cache_dir = BOTOCORE_CACHE_DIR or "/tmp/.aws/boto/cache"
 
+    # Check whether this is a test event.  If it is, handle it separately
+    # and exit.
+    if event["eventType"] == "TestRun":
+        verify_installed_libraries()
+        return
+
     try:
         account_id = get_account_id(event)
         partition = get_partition()
@@ -331,6 +339,19 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
     except Exception:
         LOG.exception("Unexpected, unknown exception")
         raise
+
+
+def verify_installed_libraries():
+    """Return JSON structure with version information of external libraries.
+
+    The intent is to verify that the external libraries were installed.
+    """
+    return json.dumps(
+        {
+            "aws_lambda_powertools": metadata.version("aws_lambda_powertools"),
+            "boto3": boto3.__version__,
+        }
+    )
 
 
 if __name__ == "__main__":

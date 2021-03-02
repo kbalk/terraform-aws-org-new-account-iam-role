@@ -54,6 +54,8 @@ func TestModule(t *testing.T) {
 			}
 		}
 	}
+//  boto_version       = value["boto3"]
+//  powertools_version = value["aws_lambda_powertools"]
 }
 
 func createTerraformOptions(directory string) *terraform.Options {
